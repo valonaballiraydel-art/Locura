@@ -1,32 +1,30 @@
+from flask import Flask, jsonify
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
-from utils import wait_for_table, download_geckodriver
+from utils import download_geckodriver, wait_for_table, parse_table
 
-def main():
-    # Descargar geckodriver automáticamente
-    driver_path = download_geckodriver()
-    
-    # Configurar Firefox headless
+app = Flask(__name__)
+
+# Descargar geckodriver al iniciar
+DRIVER_PATH = download_geckodriver()
+
+@app.route("/tabla", methods=["GET"])
+def get_tabla():
     options = Options()
     options.headless = True
-
-    driver = webdriver.Firefox(options=options, executable_path=driver_path)
+    driver = webdriver.Firefox(options=options, executable_path=DRIVER_PATH)
 
     try:
         url = "https://int.soccerway.com/national/spain/primera-division/"
         driver.get(url)
-
-        tabla, filas = wait_for_table(driver)
-        print(f"Filas encontradas: {len(filas)}")
-
-        for fila in filas:
-            columnas = fila.find_elements("tag name", "td")
-            datos = [columna.text for columna in columnas]
-            print(datos)
-
+        _, filas = wait_for_table(driver)
+        data = parse_table(filas)
+        return jsonify({"tabla": data})
     finally:
         driver.quit()
 
 if __name__ == "__main__":
-    main()
-
+    # Render suele usar $PORT
+    import os
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
