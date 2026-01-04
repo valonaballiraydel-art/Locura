@@ -56,8 +56,3 @@ def parse_table(filas):
         if row:  # ignorar filas vacías
             data.append(row)
     return data
-
-    wait = WebDriverWait(driver, timeout)
-    tabla = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "table.table")))
-    filas = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "table.table tbody tr")))
-    return tabla, filas
